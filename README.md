@@ -44,3 +44,11 @@ streamlit_app.py     interactive dashboard
 ## Scope and limitation
 
 The temporal component is unsupervised embedding comparison, so it indicates visual/semantic change rather than a labelled change type. For reliable use, input images should show the same aligned location with similar illumination. A production extension should validate the similarity threshold using labelled paired time-series data and incorporate geospatial metadata.
+
+## Baseline results
+
+The existing legacy ResNet-18 checkpoint was evaluated on a fixed 256-image slice of the reproducible validation partition. It achieved **0.9117 macro F1** and **0.91 accuracy**. This is a demonstration benchmark, not the final full-partition result, because the original checkpoint was trained before the split seed was recorded. Retraining with `train.py` and running `evaluate.py` without `--max-samples` will produce the final reproducible result.
+
+- [Metrics report](docs/results/metrics.txt)
+- [Confusion matrix](docs/results/confusion_matrix.png)
+- [ROC curves](docs/results/roc_curves.png)
