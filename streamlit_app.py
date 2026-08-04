@@ -4,19 +4,21 @@ import matplotlib.pyplot as plt
 import streamlit as st
 import torch
 from PIL import Image
-from models.resnet import ResNet18LandUse
+from models.resnet import ResNet18LandUse, load_compatible_state
 from utils.data import eval_transform
 from utils.temporal import compare_images
 
 st.set_page_config(page_title="Satellite Land-Use Classifier", layout="wide")
+EUROSAT_CLASSES = ["AnnualCrop", "Forest", "HerbaceousVegetation", "Highway", "Industrial", "Pasture", "PermanentCrop", "Residential", "River", "SeaLake"]
 @st.cache_resource
 def load_model(path):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    state = torch.load(path, map_location=device, weights_only=False); classes = state.get("classes", [str(i) for i in range(10)])
-    model = ResNet18LandUse(len(classes), pretrained=False).to(device); model.load_state_dict(state.get("model_state", state)); model.eval()
+    state = torch.load(path, map_location=device, weights_only=False); classes = state.get("classes", EUROSAT_CLASSES)
+    model = ResNet18LandUse(len(classes), pretrained=False).to(device); load_compatible_state(model, state); model.eval()
     return model, classes, device
 st.title("Satellite Land-Use Classification & Change Detection")
-checkpoint = st.sidebar.text_input("Model checkpoint", "checkpoints/best_model.pt")
+default_checkpoint = "checkpoints/best_model.pt" if Path("checkpoints/best_model.pt").exists() else "best_model.pt"
+checkpoint = st.sidebar.text_input("Model checkpoint", default_checkpoint)
 if not Path(checkpoint).exists(): st.warning("Train the model first (`python train.py`) or choose a valid checkpoint."); st.stop()
 model, classes, device = load_model(checkpoint); transform = eval_transform()
 classify_tab, change_tab = st.tabs(["Land-use classification", "Temporal change detection"])
